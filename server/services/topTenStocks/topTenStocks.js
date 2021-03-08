@@ -1,33 +1,45 @@
 const express = require('express');
-const path = require('path');
 const bodyParser = require('body-parser');
-
-const port = process.argv.slice(2)[0];
 const app = express();
 app.use(bodyParser.json());
 
-app.get('/refreshData', (req, res) => {
-  console.log('Fetching data from yFinance and storing in object storage.');
-  res.status(200).send("DATA HAS BEEN REFRESHED");
-});
+// add axios
+// import dataGetter file
+var axios = require("axios").default;
+const dataGetter = require('./topTenStocksGetter');
 
-app.post('/postExample/**', (req, res) => {
-    const heroId = parseInt(req.params[0]);
-    //const foundHero = heroes.find(subject => subject.id === heroId);
-    const foundHero = [];
-    if (foundHero) {
-        for (let attribute in foundHero) {
-            if (req.body[attribute]) {
-                foundHero[attribute] = req.body[attribute];
-                console.log(`Set ${attribute} to ${req.body[attribute]} in hero: ${heroId}`);
-            }
-        } 
-        res.status(202).header({Location: `http://localhost:${port}/hero/${foundHero.id}`}).send(foundHero);
-    } else {
-        console.log(`Hero not found.`);
-        res.status(404).send();
-    }
-});
-
-console.log(`Market Index service listening on port ${port}`);
+// initiate port
+const port = process.argv.slice(2)[0];
+console.log(`Top Ten Active Stocks service listening on port ${port}`);
 app.listen(port);
+
+// index page
+app.get('/', (req, res) => {
+  res.status(200).send("Index");
+});
+
+async function getActiveList() {
+  const response = await axios.request(dataGetter.options);
+  var activeList = response.data.finance.result[0].quotes;
+  var results = [];
+  for (let index in activeList) { // values will need to be formatted
+    let stock = activeList[index];
+    let symbol = stock.symbol;
+    let name = stock.shortName;
+    let price = stock.regularMarketPrice;
+    let change = stock.regularMarketChange;
+    let changePer = stock.regularMarketChangePercent;
+    let volume = stock.regularMarketVolume;
+    let marketCap = stock.marketCap;
+    let peRatio = (!!stock.trailingPE) ? stock.trailingPE : "---";
+    results.push({"symbol": symbol, "name": name, "price": price, "change": change, 
+      "changePer": changePer, "volume": volume, "marketCap": marketCap, "peRatio": peRatio});
+  }
+  return results;
+};
+
+// main page for top ten stocks
+app.get('/topTenStocks', async (req, res) => {
+  const results = await getActiveList();
+  res.send(results);
+});

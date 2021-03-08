@@ -1,0 +1,34 @@
+[
+    {
+        "symbol": "^GSPC",
+        "name": "S&P 500",
+        "price": "3,841.94",
+        "change": "73.47",
+        "changePer": "1.95%",
+        "volume": "3.33B"
+    },
+    {
+        "symbol": "^DJI",
+        "name": "Dow Jones Industrial Average",
+        "price": "31,496.30",
+        "change": "572.20",
+        "changePer": "1.85%",
+        "volume": "505.35M"
+    },
+    {
+        "symbol": "^IXIC",
+        "name": "NASDAQ Composite",
+        "price": "12,920.15",
+        "change": "196.65",
+        "changePer": "1.55%",
+        "volume": "2.47B"
+    },
+    {
+        "symbol": "^GSPTSE",
+        "name": "S&P/TSX Composite index",
+        "price": "18,380.96",
+        "change": "255.26",
+        "changePer": "1.41%",
+        "volume": "327.50M"
+    }
+]

@@ -8,6 +8,24 @@ app.use(bodyParser.json());
 var axios = require("axios").default;
 const dataGetter = require('./topTenStocksGetter');
 
+// register service
+(async () => {
+  try {
+    var config = {
+      method: 'post',
+      baseURL: 'http://localhost:44444',
+      url: '/AddService',
+      data: {
+        serviceId: 2,
+        serviceName: 'Top Ten Stocks'
+      }
+    };
+    const response =  await axios.request(config);
+  } catch (e) {
+      console.log("Couldn't register service.")
+  }
+})();
+
 // initiate port
 const port = process.argv.slice(2)[0];
 console.log(`Top Ten Active Stocks service listening on port ${port}`);
@@ -42,4 +60,39 @@ async function getActiveList() {
 app.get('/topTenStocks', async (req, res) => {
   const results = await getActiveList();
   res.send(results);
+});
+
+process.on('SIGTERM', async () => {
+  console.info('SIGTERM signal received.');
+  console.log('Closing http server.');
+  try {
+    var config = {
+      method: 'delete',
+      baseURL: 'http://localhost:44444',
+      url: '/RemoveService/2'
+    };
+    const response =  await axios.request(config);
+    process.exit(0);
+  } catch (e) {
+      console.log("Couldn't unregister service.");
+      process.exit(0);
+  }
+});
+
+process.on('SIGINT', async () => {
+  console.info('SIGINT signal received.');
+  console.log('Closing http server.');
+  try {
+    var config = {
+      method: 'delete',
+      baseURL: 'http://localhost:44444',
+      url: '/RemoveService/2'
+    };
+    const response =  await axios.request(config);
+    process.exit(0);
+  } catch (e) {
+      console.log(e);
+      console.log("Couldn't unregister service.");
+      process.exit(0);
+  }
 });

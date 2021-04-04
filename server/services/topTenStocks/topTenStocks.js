@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+
 const app = express();
 app.use(bodyParser.json());
 
@@ -34,7 +35,7 @@ app.listen(port, function() {
 
 // index page
 app.get('/', (req, res) => {
-  res.status(200).send("Index");
+  res.status(200).send("Index Page for Top Ten Stocks Service");
 });
 
 async function getActiveList() {
@@ -58,9 +59,30 @@ async function getActiveList() {
 };
 
 // main page for top ten stocks
+// app.get('/topTenStocks', async (req, res) => {
+//   const results = await getActiveList();
+//   res.send(results);
+// });
+
 app.get('/topTenStocks', async (req, res) => {
-  const results = await getActiveList();
-  res.send(results);
+  (async () => {
+    const results = await getActiveList();
+    try {
+      var config = {
+        method: 'post',
+        baseURL: 'http://localhost:44444',
+        url: '/UpdateData',
+        data: {
+          serviceId: 2,
+          serviceName: 'Top Ten Stocks',
+          serviceData: results
+        }
+      };
+      await axios.request(config);
+    } catch (e) {
+      console.log("Couldn't update service.")
+    }
+  })();
 });
 
 process.on('SIGTERM', async () => {

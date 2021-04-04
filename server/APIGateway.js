@@ -1,7 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const redis = require('redis');
+
 const app = express();
 app.use(bodyParser.json());
+
+const publisher = redis.createClient();
 
 var serviceRegistry = [];
 
@@ -38,7 +42,7 @@ app.delete('/RemoveService/:serviceId', (req, res) => {
 
 // index page
 app.get('/', (req, res) => {
-  res.status(200).send("Index");
+  res.status(200).send("Index Page for API Gateway");
 });
 
 // Services Available
@@ -70,11 +74,19 @@ app.get('/DataChangedSince/:serviceId/:dateTime', (req, res) => {
 //UpdateData
 app.post('/UpdateData', (req, res) => {
     const ServiceId = parseInt(req.body["serviceId"]);
+    const ServiceName = req.body["serviceName"];
     const ServiceData = req.body["serviceData"];
     if (ServiceId && ServiceData) {
         var serviceArrayIndex = serviceRegistry.findIndex(x => x.serviceId == ServiceId);
         serviceRegistry[serviceArrayIndex].serviceData = ServiceData;
         serviceRegistry[serviceArrayIndex].dateModified = Date.now();
+
+        publisher.publish(ServiceName, JSON.stringify(ServiceData));
+        publisher.on('error', function(error) {
+            console.log(error)
+        });
+
+        console.log("Publishing " + ServiceName + " using Redis");
         res.status(200).send();
     } else {
         console.log(`Id and data not provided`);

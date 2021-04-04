@@ -1,8 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const redis = require('redis');
-
-const publisher = redis.createClient();
 
 const app = express();
 app.use(bodyParser.json());
@@ -27,7 +24,7 @@ const dataGetter = require('./marketIndexGetter');
         serviceName: 'Market Index'
       }
     };
-    const response = await axios.request(config);
+    await axios.request(config);
   } catch (e) {
     console.log("Couldn't register service.")
   }
@@ -68,11 +65,34 @@ async function getMarketIndex() {
 }
 
 // main page for market index
+// app.get('/marketIndex', async (req, res) => {
+//   const results = await getMarketIndex();
+//   publisher.publish("marketIndex", JSON.stringify(results))
+//   res.send("Publishing Market Index using Redis");
+// });
+
 app.get('/marketIndex', async (req, res) => {
-  const results = await getMarketIndex();
-  publisher.publish("marketIndex", JSON.stringify(results))
-  res.send("Publishing Market Index using Redis");
+  (async () => {
+    const results = await getMarketIndex();
+    try {
+      var config = {
+        method: 'post',
+        baseURL: 'http://localhost:44444',
+        url: '/UpdateData',
+        data: {
+          serviceId: 1,
+          serviceName: 'Market Index',
+          serviceData: results
+        }
+      };
+      await axios.request(config);
+    } catch (e) {
+      console.log("Couldn't update service.")
+    }
+  })();
 });
+
+
 
 process.on('SIGTERM', async () => {
   console.info('SIGTERM signal received.');

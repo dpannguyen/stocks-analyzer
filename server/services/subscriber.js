@@ -2,6 +2,71 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { auth } = require('express-openid-connect');
 const User = require('./user.js');
+const crypto = require('crypto');
+const redis = require('redis');
+const IBM = require('ibm-cos-sdk');
+
+const ibmConfig = {
+    endpoint: "s3.us-east.cloud-object-storage.appdomain.cloud",
+    apiKeyId: "qPHHWYogiG5ChP_NmuzIF_4P_pXQBswUZyTRFH91Kj2D",
+    serviceInstanceId: "crn:v1:bluemix:public:cloud-object-storage:global:a/f85ccdefdf384a2d873ecb845241cff6:e192a948-bb60-4fb9-803f-85417b761d7e::",
+    signatureVersion: 'iam'
+}
+
+const cos = new IBM.S3(ibmConfig);
+const bucketName = '4471-objectstorage-cos-standard-dm1';
+
+function addUserToBucket(bucketName, userName, userInfo) {
+    console.log(`Creating new user: ${userName}`);
+    return cos.putObject({
+        Bucket: bucketName, 
+        Key: userName, 
+        Body: userInfo
+    }).promise()
+    .then(() => {
+        console.log(`User: ${userName} created!`);
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
+}
+
+function updateUserInBucket(bucketName, userName, userInfo) {
+    console.log(`Updating info for user: ${userName}`);
+    return cos.putObject({
+        Bucket: bucketName, 
+        Key: userName, 
+        Body: userInfo
+    }).promise()
+    .then(() => {
+        console.log(`User info for: ${userName} updated!`);
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
+}
+
+function getUserFromBucket(bucketName, userName) {
+    console.log(`Retrieving user from bucket: ${bucketName}, key: ${userName}`);
+    return cos.getObject({
+        Bucket: bucketName, 
+        Key: userName
+    }).promise();
+}
+
+function deleteUserFromBucket(bucketName, userName) {
+    console.log(`Deleting item: ${userName}`);
+    return cos.deleteObject({
+        Bucket: bucketName,
+        Key: userName
+    }).promise()
+    .then(() =>{
+        console.log(`User: ${userName} deleted!`);
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
+}
 
 const app = express();
 app.use(bodyParser.json());
@@ -14,65 +79,113 @@ app.listen(port, function() {
 const config = {
     authRequired: false,
     auth0Logout: true,
-    secret: 'tmhhwavtdgsaoyvpzcniahajqqajakplhqvcuchr',
+    secret: crypto.randomBytes(32).toString('hex'),
     baseURL: 'http://localhost:' + port,
     clientID: 'E8xyGbrDqzzjzdk5bz8xB4ebGVOFywmy',
     issuerBaseURL: 'https://dev-ldp7br7w.us.auth0.com'
 };
 
-var user = new User();
+var subscriber = redis.createClient();
 
 app.use(auth(config));
 
 app.get('/', (req, res) => {
-    res.status(200).send("User " + (req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out'));
+    if (req.oidc.isAuthenticated()) {
+        var user = req.oidc.user.name;
+        getUserFromBucket(bucketName, user).then()
+        .catch((NoSuchKey) => {
+            addUserToBucket(bucketName, user, '');
+        })
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+        });
+        res.status(200).send("User signed in succesfully.");
+    }
+    else res.status(200).send("User not signed in.");
 });
 
 app.get('/userProfile', (req, res) => {
-    res.send({"user": req.oidc.user.name, "services": user.services});
-})
-
-app.get('/subMarketIndex', (req, res) => {
-    user.subscriber.subscribe("Market Index");
-    user.addService("Market Index");
-    res.send("Subscribed to Market Index");
-})
-
-app.get('/subTopTenStocks', (req, res) => {
-    user.subscriber.subscribe("Top Ten Stocks");
-    user.addService("Top Ten Stocks");
-    res.send("Subscribed to Top Ten Stocks");
-})
-
-app.get('/subBoth', (req, res) => {
-    user.subscriber.subscribe("Market Index", "Top Ten Stocks");
-    user.addService("Market Index");
-    user.addService("Top Ten Stocks");
-    res.send("Subscribed to Market Index and Top Ten Stocks");
-})
-
-app.get('/unsubMarketIndex', (req, res) => {
-    user.subscriber.unsubscribe("Market Index");
-    user.removeService("Market Index");
-    res.send("Unsubscribed from Market Index");
-})
-
-app.get('/unsubTopTenStocks', (req, res) => {
-    user.subscriber.unsubscribe("Top Ten Stocks");
-    user.removeService("Top Ten Stocks");
-    res.send("Unsubscribed from Top Ten Stocks");
-})
-
-app.get('/unsubBoth', (req, res) => {
-    user.subscriber.unsubscribe("Market Index", "Top Ten Stocks");
-    user.removeService("Market Index");
-    user.removeService("Top Ten Stocks");
-    res.send("Unsubscribed from Market Index and Top Ten Stocks");
-})
-
-user.subscriber.on("message", (service, message) => {
-    console.log("Received data from " + service + ": " + message)
+    var user = req.oidc.user.name;
+    getUserFromBucket(bucketName, user).then((data) => {
+        var services = Buffer.from(data.Body).toString();
+        res.send({"user": user, "services": services});
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
 });
-user.subscriber.on("error", function(error) {
-    console.log(error)
+
+app.get('/getServices', (req, res) => {
+    var user = req.oidc.user.name;
+    getUserFromBucket(bucketName, user).then((data) => {
+        var subscriber = redis.createClient();
+        var serviceObject = Buffer.from(data.Body).toString();
+        var services = (!!serviceObject.length) ? serviceObject.split(", ") : [];
+        for (let index in services) {
+            subscriber.subscribe(services[index]);
+        }
+
+        subscriber.on("message", (service, message) => {
+            console.log("Received data from " + service + ": " + message);
+            // res.send("Received data from " + service + ": " + message);
+        });
+        subscriber.on("error", function(error) {
+            console.log(error);
+        });
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });;
+});
+
+app.get('/subscribe/:serviceName', (req, res) => {
+    var user = req.oidc.user.name;
+    var newService = req.params.serviceName;
+    switch(newService) {
+        case "marketIndex":
+            newService = "Market Index";
+            break;
+        case "topTenStocks":
+            newService = "Top Ten Stocks";
+            break;
+    }
+
+    getUserFromBucket(bucketName, user).then((data) => {
+        var serviceObject = Buffer.from(data.Body).toString();
+        var serviceList = (!!serviceObject.length) ? serviceObject.split(", ") : [];
+        var services = new Set(serviceList);
+
+        services.add(newService);
+        updateUserInBucket(bucketName, user, [...services].join(', '));
+        res.send(`Subscribed to ${newService}`);
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
+});
+
+app.get('/unsubscribe/:serviceName', (req, res) => {
+    var user = req.oidc.user.name;
+    var newService = req.params.serviceName;
+    switch(newService) {
+        case "marketIndex":
+            newService = "Market Index";
+            break;
+        case "topTenStocks":
+            newService = "Top Ten Stocks";
+            break;
+    }
+
+    getUserFromBucket(bucketName, user).then((data) => {
+        var serviceObject = Buffer.from(data.Body).toString();
+        var serviceList = (!!serviceObject.length) ? serviceObject.split(", ") : [];
+        var services = new Set(serviceList);
+
+        services.delete(newService);
+        updateUserInBucket(bucketName, user, [...services].join(', '));
+        res.send(`Unsubscribed from ${newService}`);
+    })
+    .catch((e) => {
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
 });

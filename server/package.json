@@ -1,8 +1,8 @@
 {
-  "name": "marketIndex",
+  "name": "apiGateway",
   "version": "1.0.0",
   "description": "",
-  "main": "marketIndex.js",
+  "main": "APIGateway.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

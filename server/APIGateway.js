@@ -6,9 +6,10 @@ app.use(bodyParser.json());
 var serviceRegistry = [];
 
 // initiate port
-const port = process.argv.slice(2)[0];
-console.log(`API Gateway listening on port ${port}`);
-app.listen(port);
+const port = '44444';
+app.listen(port, function() {
+    console.log(`API Gateway listening on port ${port}`);
+});
 
 app.post('/AddService', (req, res) => {
     const ServiceId = parseInt(req.body["serviceId"]);

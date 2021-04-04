@@ -1,7 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const redis = require('redis');
+
+const publisher = redis.createClient();
+
 const app = express();
 app.use(bodyParser.json());
+
+// const sleep = sec => new Promise(resolve => setTimeout(resolve, sec * 1000)); await sleep(4);
+
 
 // add axios
 // import dataGetter file
@@ -20,24 +27,25 @@ const dataGetter = require('./marketIndexGetter');
         serviceName: 'Market Index'
       }
     };
-    const response =  await axios.request(config);
+    const response = await axios.request(config);
   } catch (e) {
-      console.log("Couldn't register service.")
+    console.log("Couldn't register service.")
   }
 })();
 
 // initiate port
 const port = process.argv.slice(2)[0];
-console.log(`Market Index service listening on port ${port}`);
-app.listen(port);
+app.listen(port, function () {
+  console.log(`Market Index service listening on port ${port}`);
+});
 
 // index page
 app.get('/', (req, res) => {
-  res.status(200).send("Index");
+  res.status(200).send("Index Page for Market Index Service");
 });
 
 async function getPriceInfo(options) {
-  const response =  await axios.request(options);
+  const response = await axios.request(options);
   var priceObject = response.data.quoteSummary.result[0].price;
   var symbol = priceObject.symbol;
   var name = priceObject.shortName;
@@ -45,7 +53,7 @@ async function getPriceInfo(options) {
   var change = priceObject.regularMarketChange.fmt;
   var changePer = priceObject.regularMarketChangePercent.fmt;
   var volume = priceObject.regularMarketVolume.fmt;
-  return {"symbol": symbol, "name": name, "price": price, "change": change, "changePer": changePer, "volume": volume};
+  return { "symbol": symbol, "name": name, "price": price, "change": change, "changePer": changePer, "volume": volume };
 };
 
 async function getMarketIndex() {
@@ -62,7 +70,8 @@ async function getMarketIndex() {
 // main page for market index
 app.get('/marketIndex', async (req, res) => {
   const results = await getMarketIndex();
-  res.send(results);
+  publisher.publish("marketIndex", JSON.stringify(results))
+  res.send("Publishing Market Index using Redis");
 });
 
 process.on('SIGTERM', async () => {
@@ -74,11 +83,11 @@ process.on('SIGTERM', async () => {
       baseURL: 'http://localhost:44444',
       url: '/RemoveService/1'
     };
-    const response =  await axios.request(config);
+    const response = await axios.request(config);
     process.exit(0);
   } catch (e) {
-      console.log("Couldn't unregister service.");
-      process.exit(0);
+    console.log("Couldn't unregister service.");
+    process.exit(0);
   }
 });
 
@@ -91,11 +100,11 @@ process.on('SIGINT', async () => {
       baseURL: 'http://localhost:44444',
       url: '/RemoveService/1'
     };
-    const response =  await axios.request(config);
+    const response = await axios.request(config);
     process.exit(0);
   } catch (e) {
-      console.log(e);
-      console.log("Couldn't unregister service.");
-      process.exit(0);
+    console.log(e);
+    console.log("Couldn't unregister service.");
+    process.exit(0);
   }
 });

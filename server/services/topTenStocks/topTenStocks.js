@@ -28,8 +28,9 @@ const dataGetter = require('./topTenStocksGetter');
 
 // initiate port
 const port = process.argv.slice(2)[0];
-console.log(`Top Ten Active Stocks service listening on port ${port}`);
-app.listen(port);
+app.listen(port, function() {
+  console.log(`Top Ten Active Stocks service listening on port ${port}`);
+});
 
 // index page
 app.get('/', (req, res) => {

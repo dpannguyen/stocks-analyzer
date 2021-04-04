@@ -1,11 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { auth } = require('express-openid-connect');
-const User = require('./user.js');
 const crypto = require('crypto');
 const redis = require('redis');
 const IBM = require('ibm-cos-sdk');
 
+
+// IBM Object Storage config
+// need to be moved to another file when cleanup
+// keys can be put into config file if time permits
 const ibmConfig = {
     endpoint: "s3.us-east.cloud-object-storage.appdomain.cloud",
     apiKeyId: "qPHHWYogiG5ChP_NmuzIF_4P_pXQBswUZyTRFH91Kj2D",
@@ -14,7 +17,7 @@ const ibmConfig = {
 }
 
 const cos = new IBM.S3(ibmConfig);
-const bucketName = '4471-objectstorage-cos-standard-dm1';
+const bucketName = '4471-objectstorage-cos-standard-dm1'; // IBM Object Storage bucket
 
 function addUserToBucket(bucketName, userName, userInfo) {
     console.log(`Creating new user: ${userName}`);
@@ -71,11 +74,16 @@ function deleteUserFromBucket(bucketName, userName) {
 const app = express();
 app.use(bodyParser.json());
 
-const port = process.argv.slice(2)[0];
+
+// Auth0 authentication callback url set to port 3000
+const port = '3000';
 app.listen(port, function() {
     console.log(`User listening on port ${port}`); 
 });
 
+// Auth0 config
+// need to be moved to another file when cleanup
+// keys can be put into config file if time permits
 const config = {
     authRequired: false,
     auth0Logout: true,
@@ -85,10 +93,10 @@ const config = {
     issuerBaseURL: 'https://dev-ldp7br7w.us.auth0.com'
 };
 
-var subscriber = redis.createClient();
-
 app.use(auth(config));
 
+// user authentication
+// if new user, create object storage
 app.get('/', (req, res) => {
     if (req.oidc.isAuthenticated()) {
         var user = req.oidc.user.name;
@@ -104,6 +112,8 @@ app.get('/', (req, res) => {
     else res.status(200).send("User not signed in.");
 });
 
+
+// get user general profile (name and service list)
 app.get('/userProfile', (req, res) => {
     var user = req.oidc.user.name;
     getUserFromBucket(bucketName, user).then((data) => {
@@ -115,6 +125,10 @@ app.get('/userProfile', (req, res) => {
     });
 });
 
+// route to perform pubsub subscription
+// once called, data will get outputed to console automatically 
+// whenever service updates (e.g. when /marketIndex is called)
+// currently can only ouput in console(?)
 app.get('/getServices', (req, res) => {
     var user = req.oidc.user.name;
     getUserFromBucket(bucketName, user).then((data) => {
@@ -126,7 +140,7 @@ app.get('/getServices', (req, res) => {
         }
 
         subscriber.on("message", (service, message) => {
-            console.log("Received data from " + service + ": " + message);
+            console.log("Received data from " + service + " for user " + user);
             // res.send("Received data from " + service + ": " + message);
         });
         subscriber.on("error", function(error) {
@@ -138,6 +152,7 @@ app.get('/getServices', (req, res) => {
     });;
 });
 
+// route for user to subscribe to service
 app.get('/subscribe/:serviceName', (req, res) => {
     var user = req.oidc.user.name;
     var newService = req.params.serviceName;
@@ -164,6 +179,7 @@ app.get('/subscribe/:serviceName', (req, res) => {
     });
 });
 
+// route for user to unsubscribe to service
 app.get('/unsubscribe/:serviceName', (req, res) => {
     var user = req.oidc.user.name;
     var newService = req.params.serviceName;

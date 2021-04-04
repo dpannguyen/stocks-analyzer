@@ -4,8 +4,6 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
-// const sleep = sec => new Promise(resolve => setTimeout(resolve, sec * 1000)); await sleep(4);
-
 
 // add axios
 // import dataGetter file
@@ -71,6 +69,8 @@ async function getMarketIndex() {
 //   res.send("Publishing Market Index using Redis");
 // });
 
+// route to manually get and update service data from yfinance api
+// send data to api gateway
 app.get('/marketIndex', async (req, res) => {
   (async () => {
     const results = await getMarketIndex();
@@ -93,7 +93,7 @@ app.get('/marketIndex', async (req, res) => {
 });
 
 
-
+// unregister service
 process.on('SIGTERM', async () => {
   console.info('SIGTERM signal received.');
   console.log('Closing http server.');

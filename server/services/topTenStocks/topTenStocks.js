@@ -64,6 +64,8 @@ async function getActiveList() {
 //   res.send(results);
 // });
 
+// route to manually get and update service data from yfinance api
+// send data to api gateway
 app.get('/topTenStocks', async (req, res) => {
   (async () => {
     const results = await getActiveList();
@@ -85,6 +87,7 @@ app.get('/topTenStocks', async (req, res) => {
   })();
 });
 
+// unregister service
 process.on('SIGTERM', async () => {
   console.info('SIGTERM signal received.');
   console.log('Closing http server.');

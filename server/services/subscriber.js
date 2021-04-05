@@ -7,7 +7,7 @@ const IBM = require('ibm-cos-sdk');
 
 
 // IBM Object Storage config
-// need to be moved to another file when cleanup
+// needs to be moved to another file when cleanup
 // keys can be put into config file if time permits
 const ibmConfig = {
     endpoint: "s3.us-east.cloud-object-storage.appdomain.cloud",
@@ -82,7 +82,7 @@ app.listen(port, function() {
 });
 
 // Auth0 config
-// need to be moved to another file when cleanup
+// needs to be moved to another file when cleanup
 // keys can be put into config file if time permits
 const config = {
     authRequired: false,
@@ -128,7 +128,7 @@ app.get('/userProfile', (req, res) => {
 // route to perform pubsub subscription
 // once called, data will get outputed to console automatically 
 // whenever service updates (e.g. when /marketIndex is called)
-// currently can only ouput in console(?)
+// currently can only ouput in console
 app.get('/getServices', (req, res) => {
     var user = req.oidc.user.name;
     getUserFromBucket(bucketName, user).then((data) => {

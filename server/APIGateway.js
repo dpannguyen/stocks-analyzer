@@ -72,7 +72,7 @@ app.get('/DataChangedSince/:serviceId/:dateTime', (req, res) => {
 });
 
 //UpdateData
-// get called whenever service updates data (e.g. when run /marketIndex)
+// gets called whenever service updates data (e.g. when run /marketIndex)
 // new data will be publish to corresponding service channel
 app.post('/UpdateData', (req, res) => {
     const ServiceId = parseInt(req.body["serviceId"]);

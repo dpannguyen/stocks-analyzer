@@ -85,6 +85,7 @@ app.get('/topTenStocks', async (req, res) => {
       console.log("Couldn't update service.")
     }
   })();
+  res.status(200).send();
 });
 
 // unregister service

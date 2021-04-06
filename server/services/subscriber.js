@@ -145,7 +145,7 @@ app.get('/getServices', (req, res) => {
 
         subscriber.on("message", (service, message) => {
             console.log("Received data from " + service + " for user " + user);
-            // res.send("Received data from " + service + ": " + message);
+            res.status(200).send();
         });
         subscriber.on("error", function(error) {
             console.log(error);

@@ -5,7 +5,11 @@ const redis = require('redis');
 const app = express();
 app.use(bodyParser.json());
 
-const publisher = redis.createClient();
+const publisher = redis.createClient({
+    host: 'redis-10758.c251.east-us-mz.azure.cloud.redislabs.com',
+    port: '10758',
+    password: 'XxgTMZksBbaGWSAcDVEzhA4SqA9UlkeI'
+});
 
 var serviceRegistry = [];
 

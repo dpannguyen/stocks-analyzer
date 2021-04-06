@@ -1,13 +1,5 @@
 ## Build project
 
-* Download and extract redis
-    ```
-    $ wget https://download.redis.io/releases/redis-6.2.1.tar.gz
-    $ tar xzf redis-6.2.1.tar.gz
-    $ cd redis-6.2.1
-    $ make
-    ```
-
 * Under */server*, run
     ```
     npm install express body-parser redis
@@ -24,10 +16,6 @@
 
 ## Run project
 
-* Run redis
-    ```
-    $ src/redis-server
-    ```
 * Run API Gateway
     ```
     node /server/APIGateway.js

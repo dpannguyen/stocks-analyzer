@@ -132,7 +132,11 @@ app.get('/userProfile', (req, res) => {
 app.get('/getServices', (req, res) => {
     var user = req.oidc.user.name;
     getUserFromBucket(bucketName, user).then((data) => {
-        var subscriber = redis.createClient();
+        var subscriber = redis.createClient({
+            host: 'redis-10758.c251.east-us-mz.azure.cloud.redislabs.com',
+            port: '10758',
+            password: 'XxgTMZksBbaGWSAcDVEzhA4SqA9UlkeI'
+        });
         var serviceObject = Buffer.from(data.Body).toString();
         var services = (!!serviceObject.length) ? serviceObject.split(", ") : [];
         for (let index in services) {

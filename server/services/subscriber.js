@@ -145,11 +145,11 @@ app.get('/getServices', (req, res) => {
 
         subscriber.on("message", (service, message) => {
             console.log("Received data from " + service + " for user " + user);
-            res.status(200).send();
         });
         subscriber.on("error", function(error) {
             console.log(error);
         });
+        res.status(200).send();
     })
     .catch((e) => {
         console.error(`ERROR: ${e.code} - ${e.message}\n`);

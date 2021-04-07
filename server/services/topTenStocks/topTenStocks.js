@@ -58,12 +58,6 @@ async function getActiveList() {
   return results;
 };
 
-// main page for top ten stocks
-// app.get('/topTenStocks', async (req, res) => {
-//   const results = await getActiveList();
-//   res.send(results);
-// });
-
 // route to manually get and update service data from yfinance api
 // send data to api gateway
 app.get('/topTenStocks', async (req, res) => {

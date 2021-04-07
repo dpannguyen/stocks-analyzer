@@ -64,7 +64,7 @@ app.get('/DataChangedSince/:serviceId/:dateTime', (req, res) => {
     //Find entry if it exists
     var entryList = serviceRegistry.filter(x => x.serviceId == req.params.serviceId);
     if (entryList.length == 0){
-        res.status(301).send();
+        res.status(301).send({"error": "Service has been removed."});
     } else {
         var entry = entryList[0];
         if (entry.dateModified > req.params.dateTime){
@@ -86,13 +86,7 @@ app.post('/UpdateData', (req, res) => {
         var serviceArrayIndex = serviceRegistry.findIndex(x => x.serviceId == ServiceId);
         serviceRegistry[serviceArrayIndex].serviceData = ServiceData;
         serviceRegistry[serviceArrayIndex].dateModified = Date.now();
-
-        publisher.publish(ServiceName, JSON.stringify(ServiceData));
-        publisher.on('error', function(error) {
-            console.log(error)
-        });
-
-        console.log("Publishing " + ServiceName + " using Redis");
+        console.log("Updating " + ServiceName + " in registry.");
         res.status(200).send();
     } else {
         console.log(`Id and data not provided`);

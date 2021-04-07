@@ -2,11 +2,11 @@
 
 * Under */server*, run
     ```
-    npm install express body-parser redis
+    npm install express body-parser
     ```
 * Under */server/services*, run
     ```
-    npm install express body-parser redis crypto express-openid-connect ibm-cos-sdk
+    npm install express body-parser crypto express-openid-connect ibm-cos-sdk
     ```
 * Under each service folder in */server/services/*, run
     ```

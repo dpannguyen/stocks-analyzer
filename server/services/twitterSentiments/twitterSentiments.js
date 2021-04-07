@@ -29,6 +29,30 @@ app.get('/refreshData', (req, res) => {
   res.status(200).send("DATA HAS BEEN REFRESHED");
 });
 
+// route to manually get and update service data from yfinance api
+// send data to api gateway
+// app.get('/marketIndex', async (req, res) => {
+//   (async () => {
+//     const results = await getMarketIndex();
+//     try {
+//       var config = {
+//         method: 'post',
+//         baseURL: 'http://localhost:44444',
+//         url: '/UpdateData',
+//         data: {
+//           serviceId: 1,
+//           serviceName: 'Market Index',
+//           serviceData: results
+//         }
+//       };
+//       await axios.request(config);
+//     } catch (e) {
+//       console.log("Couldn't update service.")
+//     }
+//   })();
+//   res.status(200).send();
+// });
+
 app.post('/postExample/**', (req, res) => {
     const heroId = parseInt(req.params[0]);
     //const foundHero = heroes.find(subject => subject.id === heroId);

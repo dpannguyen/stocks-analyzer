@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { auth } = require('express-openid-connect');
 const crypto = require('crypto');
-const redis = require('redis');
 const IBM = require('ibm-cos-sdk');
 
 
@@ -22,37 +21,37 @@ const bucketName = '4471-objectstorage-cos-standard-dm1'; // IBM Object Storage 
 function addUserToBucket(bucketName, userName, userInfo) {
     console.log(`Creating new user: ${userName}`);
     return cos.putObject({
-        Bucket: bucketName, 
-        Key: userName, 
+        Bucket: bucketName,
+        Key: userName,
         Body: userInfo
     }).promise()
-    .then(() => {
-        console.log(`User: ${userName} created!`);
-    })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });
+        .then(() => {
+            console.log(`User: ${userName} created!`);
+        })
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+        });
 }
 
 function updateUserInBucket(bucketName, userName, userInfo) {
     console.log(`Updating info for user: ${userName}`);
     return cos.putObject({
-        Bucket: bucketName, 
-        Key: userName, 
+        Bucket: bucketName,
+        Key: userName,
         Body: userInfo
     }).promise()
-    .then(() => {
-        console.log(`User info for: ${userName} updated!`);
-    })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });
+        .then(() => {
+            console.log(`User info for: ${userName} updated!`);
+        })
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+        });
 }
 
 function getUserFromBucket(bucketName, userName) {
     console.log(`Retrieving user from bucket: ${bucketName}, key: ${userName}`);
     return cos.getObject({
-        Bucket: bucketName, 
+        Bucket: bucketName,
         Key: userName
     }).promise();
 }
@@ -63,12 +62,12 @@ function deleteUserFromBucket(bucketName, userName) {
         Bucket: bucketName,
         Key: userName
     }).promise()
-    .then(() =>{
-        console.log(`User: ${userName} deleted!`);
-    })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });
+        .then(() => {
+            console.log(`User: ${userName} deleted!`);
+        })
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+        });
 }
 
 const app = express();
@@ -77,8 +76,8 @@ app.use(bodyParser.json());
 
 // Auth0 authentication callback url set to port 3000
 const port = '3000';
-app.listen(port, function() {
-    console.log(`User listening on port ${port}`); 
+app.listen(port, function () {
+    console.log(`User listening on port ${port}`);
 });
 
 // Auth0 config
@@ -98,18 +97,23 @@ app.use(auth(config));
 // user authentication
 // if new user, create object storage
 app.get('/', (req, res) => {
-    if (req.oidc.isAuthenticated()) {
-        var user = req.oidc.user.name;
-        getUserFromBucket(bucketName, user).then()
-        .catch((NoSuchKey) => {
+    new Promise((resolve, reject) => {
+        if (req.oidc.isAuthenticated()) {
+            resolve(req.oidc.user.name);
+        } else {
+            reject(null);
+        }
+    }).then((user) =>
+        getUserFromBucket(bucketName, user).then((data) => {
+            var services = Buffer.from(data.Body).toString();
+            res.status(200).send({ "user": user, "services": services });
+        }).catch((NoSuchKey) => {
             addUserToBucket(bucketName, user, '');
         })
-        .catch((e) => {
-            console.error(`ERROR: ${e.code} - ${e.message}\n`);
-        });
-        res.status(200).send("User signed in succesfully.");
-    }
-    else res.status(200).send("User not signed in.");
+    ).catch((e) => {
+        res.status(200).send({"error": "User not signed in."});
+        console.error(`ERROR: ${e.code} - ${e.message}\n`);
+    });
 });
 
 
@@ -118,49 +122,18 @@ app.get('/userProfile', (req, res) => {
     var user = req.oidc.user.name;
     getUserFromBucket(bucketName, user).then((data) => {
         var services = Buffer.from(data.Body).toString();
-        res.send({"user": user, "services": services});
+        res.send({ "user": user, "services": services });
     })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });
-});
-
-// route to perform pubsub subscription
-// once called, data will get outputed to console automatically 
-// whenever service updates (e.g. when /marketIndex is called)
-// currently can only ouput in console
-app.get('/getServices', (req, res) => {
-    var user = req.oidc.user.name;
-    getUserFromBucket(bucketName, user).then((data) => {
-        var subscriber = redis.createClient({
-            host: 'redis-10758.c251.east-us-mz.azure.cloud.redislabs.com',
-            port: '10758',
-            password: 'XxgTMZksBbaGWSAcDVEzhA4SqA9UlkeI'
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
         });
-        var serviceObject = Buffer.from(data.Body).toString();
-        var services = (!!serviceObject.length) ? serviceObject.split(", ") : [];
-        for (let index in services) {
-            subscriber.subscribe(services[index]);
-        }
-
-        subscriber.on("message", (service, message) => {
-            console.log("Received data from " + service + " for user " + user);
-        });
-        subscriber.on("error", function(error) {
-            console.log(error);
-        });
-        res.status(200).send();
-    })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });;
 });
 
 // route for user to subscribe to service
 app.get('/subscribe/:serviceName', (req, res) => {
     var user = req.oidc.user.name;
     var newService = req.params.serviceName;
-    switch(newService) {
+    switch (newService) {
         case "marketIndex":
             newService = "Market Index";
             break;
@@ -178,16 +151,16 @@ app.get('/subscribe/:serviceName', (req, res) => {
         updateUserInBucket(bucketName, user, [...services].join(', '));
         res.send(`Subscribed to ${newService}`);
     })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+        });
 });
 
 // route for user to unsubscribe to service
 app.get('/unsubscribe/:serviceName', (req, res) => {
     var user = req.oidc.user.name;
     var newService = req.params.serviceName;
-    switch(newService) {
+    switch (newService) {
         case "marketIndex":
             newService = "Market Index";
             break;
@@ -205,7 +178,7 @@ app.get('/unsubscribe/:serviceName', (req, res) => {
         updateUserInBucket(bucketName, user, [...services].join(', '));
         res.send(`Unsubscribed from ${newService}`);
     })
-    .catch((e) => {
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
-    });
+        .catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+        });
 });

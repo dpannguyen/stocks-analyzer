@@ -106,27 +106,16 @@ app.get('/', (req, res) => {
     }).then((user) =>
         getUserFromBucket(bucketName, user).then((data) => {
             var services = Buffer.from(data.Body).toString();
-            res.status(200).send({ "user": user, "services": services });
+            res.status(200).send({"user": user, "services": services});
         }).catch((NoSuchKey) => {
             addUserToBucket(bucketName, user, '');
+        }).catch((e) => {
+            console.error(`ERROR: ${e.code} - ${e.message}\n`);
+            res.send({"error": "Error when accessing IBM Object Storage."});
         })
     ).catch((e) => {
         res.status(200).send({"error": "User not signed in."});
-        console.error(`ERROR: ${e.code} - ${e.message}\n`);
     });
-});
-
-
-// get user general profile (name and service list)
-app.get('/userProfile', (req, res) => {
-    var user = req.oidc.user.name;
-    getUserFromBucket(bucketName, user).then((data) => {
-        var services = Buffer.from(data.Body).toString();
-        res.send({ "user": user, "services": services });
-    })
-        .catch((e) => {
-            console.error(`ERROR: ${e.code} - ${e.message}\n`);
-        });
 });
 
 // route for user to subscribe to service
@@ -149,10 +138,11 @@ app.get('/subscribe/:serviceName', (req, res) => {
 
         services.add(newService);
         updateUserInBucket(bucketName, user, [...services].join(', '));
-        res.send(`Subscribed to ${newService}`);
+        res.send({"service": newService});
     })
         .catch((e) => {
             console.error(`ERROR: ${e.code} - ${e.message}\n`);
+            res.send({"error": "Error when accessing IBM Object Storage."});
         });
 });
 
@@ -176,9 +166,10 @@ app.get('/unsubscribe/:serviceName', (req, res) => {
 
         services.delete(newService);
         updateUserInBucket(bucketName, user, [...services].join(', '));
-        res.send(`Unsubscribed from ${newService}`);
+        res.send({"service": newService});
     })
         .catch((e) => {
             console.error(`ERROR: ${e.code} - ${e.message}\n`);
+            res.send({"error": "Error when accessing IBM Object Storage."});
         });
 });

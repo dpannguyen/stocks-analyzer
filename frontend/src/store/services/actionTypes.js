@@ -1,0 +1,6 @@
+/* LAYOUT */
+export const SET_SERVICES = "SET_SERVICES";
+export const SET_SUBSCRIPTIONS = "SET_SUBSCRIPTIONS";
+
+
+

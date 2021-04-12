@@ -1,13 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const config = require('./config');
 
 var axios = require("axios").default;
 const dataGetter = require('./topTenStocksGetter');
+const gateway = config.gateway;
 
-// const gateway = 'http://4471-apigateway.azurewebsites.net';
-const gateway = 'http://localhost:4444';
-
-var serviceRegistry = [];
 
 // ignore request for FavIcon. so there is no error in browser
 const ignoreFavicon = (req, res, next) => {
@@ -68,9 +66,8 @@ const create = async () => {
     app.use(ignoreFavicon);
     app.use(bodyParser.json());
 
-    // root route - serve static file
+    // root route
     app.get('/', (req, res) => {
-        // res.sendFile(path.join(__dirname, '../public/client.html'));
         res.status(200).send("Top Ten Stocks Service");
     });
 

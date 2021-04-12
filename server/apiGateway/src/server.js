@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const IBM = require('ibm-cos-sdk');
+const config = require('./config');
 
 var serviceRegistry = [];
 
@@ -13,17 +14,15 @@ const ignoreFavicon = (req, res, next) => {
 };
 
 // IBM Object Storage config
-// needs to be moved to another file when cleanup
-// keys can be put into config file if time permits
 const ibmConfig = {
-    endpoint: "s3.us-east.cloud-object-storage.appdomain.cloud",
-    apiKeyId: "qPHHWYogiG5ChP_NmuzIF_4P_pXQBswUZyTRFH91Kj2D",
-    serviceInstanceId: "crn:v1:bluemix:public:cloud-object-storage:global:a/f85ccdefdf384a2d873ecb845241cff6:e192a948-bb60-4fb9-803f-85417b761d7e::",
-    signatureVersion: 'iam'
+    endpoint: config.ibm.endpoint,
+    apiKeyId: config.ibm.apiKeyId,
+    serviceInstanceId: config.ibm.serviceInstanceId,
+    signatureVersion: config.ibm.signatureVersion
 }
 
 const cos = new IBM.S3(ibmConfig);
-const bucketName = '4471-objectstorage-cos-standard-dm1'; // IBM Object Storage bucket
+const bucketName = config.ibm.bucketName; // IBM Object Storage bucket
 
 function addUserToBucket(bucketName, userName, userInfo) {
     console.log(`Creating new user: ${userName}`);
@@ -106,10 +105,9 @@ const create = async () => {
         next();
     });
 
-    // root route - serve static file
+    // root route
     app.get('/', (req, res) => {
-        // res.sendFile(path.join(__dirname, '../public/client.html'));
-        res.status(200).send("IM IN");
+        res.status(200).send("API Gateway");
     });
 
     app.post('/AddService', (req, res) => {

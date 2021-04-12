@@ -1,10 +1,12 @@
+const config = require('./config');
+
 var options = {
   method: 'GET',
-  url: 'https://financial-twitter-sentiment.p.rapidapi.com/api/fin-twitter/stocks/sentiment',
+  url: config.twitter.baseURL,
   params: { stocks: '$aapl,$tsla,$QBTC.U,$AMZN' },
   headers: {
-    'x-rapidapi-key': 'f2b2894089mshd8a9ba67febdf74p14c035jsnebb83df78f7e',
-    'x-rapidapi-host': 'financial-twitter-sentiment.p.rapidapi.com'
+    'x-rapidapi-key': config.twitter.key,
+    'x-rapidapi-host': config.twitter.host
   }
 };
 

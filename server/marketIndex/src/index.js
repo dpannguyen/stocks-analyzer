@@ -1,10 +1,9 @@
 const server = require('./server');
+const config = require('./config');
 var axios = require("axios").default;
 
-const port = process.env.PORT || 3010;
-
-// const gateway = 'http://4471-apigateway.azurewebsites.net';
-const gateway = 'http://localhost:4444';
+const port = process.env.PORT || config.port;
+const gateway = config.gateway;
 
 server.create()
   .then(app => {

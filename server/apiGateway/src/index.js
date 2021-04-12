@@ -1,6 +1,7 @@
 const server = require('./server');
+const config = require('./config');
 
-const port = process.env.PORT || 4444;
+const port = process.env.PORT || config.port;
 
 server.create()
     .then(app => {

@@ -1,9 +1,9 @@
 var options = {
   method: 'GET',
-  baseURL: 'https://yahoo-finance-low-latency.p.rapidapi.com/v11/finance/quoteSummary/',
-  url: '',
+  url: 'https://yahoo-finance-low-latency.p.rapidapi.com/ws/screeners/v1/finance/screener/predefined/saved',
   params: {
-    modules: 'price'
+    scrIds: 'most_actives', 
+    count: '10'
   },
   headers: {
     'x-rapidapi-key': '2d5d406ff9msh278fd839ab3d0d7p12c314jsn35eb5ce9c082',
@@ -12,3 +12,4 @@ var options = {
 };
 
 module.exports = {options};
+  

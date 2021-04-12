@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const apiGatewayUrl = "https://4471-apigateway.azurewebsites.net/"
-const subscribeUrl = "https://4471-apigateway.azurewebsites.net/"
-// const apiGatewayUrl = "http://localhost:44444"
-// const subscribeUrl = "http://localhost:9000"
+// const apiGatewayUrl = "https://4471-apigateway.azurewebsites.net/"
+// const subscribeUrl = "https://4471-apigateway.azurewebsites.net/"
+const apiGatewayUrl = "http://localhost:4444"
+const subscribeUrl = "http://localhost:4444"
 const frontendUrl = "http://localhost:3000"
 const refreshTime = 1000
 

@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 var axios = require("axios").default;
 const dataGetter = require('./topTenStocksGetter');
 
+// const gateway = 'http://4471-apigateway.azurewebsites.net';
+const gateway = 'http://localhost:4444';
+
 var serviceRegistry = [];
 
 // ignore request for FavIcon. so there is no error in browser
@@ -19,37 +22,38 @@ async function getActiveList() {
     var activeList = response.data.finance.result[0].quotes;
     var results = [];
     for (let index in activeList) { // values will need to be formatted
-      let stock = activeList[index];
-      let symbol = stock.symbol;
-      let name = stock.shortName;
-      let price = stock.regularMarketPrice;
-      let change = stock.regularMarketChange;
-      let changePer = stock.regularMarketChangePercent;
-      let volume = stock.regularMarketVolume;
-      let marketCap = stock.marketCap;
-      let peRatio = (!!stock.trailingPE) ? stock.trailingPE : "---";
-      results.push({"symbol": symbol, "name": name, "price": price, "change": change, 
-        "changePer": changePer, "volume": volume, "marketCap": marketCap, "peRatio": peRatio});
+        let stock = activeList[index];
+        let symbol = stock.symbol;
+        let name = stock.shortName;
+        let price = stock.regularMarketPrice;
+        let change = stock.regularMarketChange;
+        let changePer = stock.regularMarketChangePercent;
+        let volume = stock.regularMarketVolume;
+        let marketCap = stock.marketCap;
+        let peRatio = (!!stock.trailingPE) ? stock.trailingPE : "---";
+        results.push({
+            "symbol": symbol, "name": name, "price": price, "change": change,
+            "changePer": changePer, "volume": volume, "marketCap": marketCap, "peRatio": peRatio
+        });
     }
     return results;
-  };
+};
 
 // fn to create express server
 const create = async () => {
-    
+
     // register service
     (async () => {
         const results = await getActiveList();
         try {
             var config = {
                 method: 'post',
-                // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                baseURL: 'http://localhost:4444',
+                baseURL: gateway,
                 url: '/AddService',
                 data: {
-                serviceId: 2,
-                serviceName: 'Top Ten Stocks',
-                serviceData: results
+                    serviceId: 2,
+                    serviceName: 'Top Ten Stocks',
+                    serviceData: results
                 }
             };
             await axios.request(config);
@@ -77,15 +81,14 @@ const create = async () => {
             const results = await getActiveList();
             try {
                 var config = {
-                method: 'post',
-                // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                baseURL: 'http://localhost:4444',
-                url: '/UpdateData',
-                data: {
-                    serviceId: 2,
-                    serviceName: 'Top Ten Stocks',
-                    serviceData: results
-                }
+                    method: 'post',
+                    baseURL: gateway,
+                    url: '/UpdateData',
+                    data: {
+                        serviceId: 2,
+                        serviceName: 'Top Ten Stocks',
+                        serviceData: results
+                    }
                 };
                 await axios.request(config);
             } catch (e) {
@@ -97,17 +100,16 @@ const create = async () => {
 
     // shutdown service
     app.get('/shutdown', async (req, res) => {
-            try {
-                var config = {
-                    method: 'delete',
-                    // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                    baseURL: 'http://localhost:4444',
-                    url: '/RemoveService/2'
-                  };
-                  const response = await axios.request(config);
-            } catch (e) {
-                console.log("Couldn't shutdown service.")
-            }
+        try {
+            var config = {
+                method: 'delete',
+                baseURL: gateway,
+                url: '/RemoveService/2'
+            };
+            const response = await axios.request(config);
+        } catch (e) {
+            console.log("Couldn't shutdown service.")
+        }
         res.status(200).send();
     });
 

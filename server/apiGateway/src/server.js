@@ -79,7 +79,7 @@ function deleteUserFromBucket(bucketName, userName) {
 
 // fn to create express server
 const create = async () => {
-    
+
     // server
     const app = express();
 
@@ -91,17 +91,17 @@ const create = async () => {
 
         // Website you wish to allow to connect
         res.setHeader('Access-Control-Allow-Origin', '*');
-    
+
         // Request methods you wish to allow
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    
+
         // Request headers you wish to allow
         res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    
+
         // Set to true if you need the website to include cookies in the requests sent
         // to the API (e.g. in case you use sessions)
         res.setHeader('Access-Control-Allow-Credentials', true);
-    
+
         // Pass to next layer of middleware
         next();
     });
@@ -118,14 +118,14 @@ const create = async () => {
         const ServiceData = req.body["serviceData"];
         const DateModified = Date.now();
         if (ServiceId && ServiceName) {
-            serviceRegistry.push({"serviceId": ServiceId, "serviceName": ServiceName, "serviceData": ServiceData, "dateModified": DateModified});
+            serviceRegistry.push({ "serviceId": ServiceId, "serviceName": ServiceName, "serviceData": ServiceData, "dateModified": DateModified });
             res.status(200).send();
         } else {
             console.log(`Id and name not provided`);
             res.status(404).send();
         }
     });
-    
+
     app.delete('/RemoveService/:serviceId', (req, res) => {
         const ServiceId = parseInt(req.params.serviceId);
         if (ServiceId) {
@@ -140,30 +140,30 @@ const create = async () => {
     // Services Available
     app.get('/GetServices', (req, res) => {
         res.status(200).send(serviceRegistry);
-      });
-    
+    });
+
     // Services Available
     app.get('/ServiceExists/:serviceId', (req, res) => {
         res.status(200).send(serviceRegistry.some(x => x.serviceId == req.params.serviceId));
     });
-    
+
     // DataChangedSince
     app.get('/DataChangedSince/:serviceId/:dateTime', (req, res) => {
         //Find entry if it exists
         var entryList = serviceRegistry.filter(x => x.serviceId == req.params.serviceId);
-        if (entryList.length == 0){
-            res.status(301).send({"error": "Service has been removed."});
+        if (entryList.length == 0) {
+            res.status(301).send({ "error": "Service has been removed." });
         } else {
             var entry = entryList[0];
-            if (entry.dateModified > req.params.dateTime){
-                res.status(200).send({"data": entry.serviceData, "dateTime": entry.dateModified})
+            if (entry.dateModified > req.params.dateTime) {
+                res.status(200).send({ "data": entry.serviceData, "dateTime": entry.dateModified })
             } else {
                 res.status(304).send();
             }
         }
     });
-    
-    //UpdateData
+
+    // UpdateData
     // gets called whenever service updates data (e.g. when run /marketIndex)
     // new data will be publish to corresponding service channel
     app.post('/UpdateData', (req, res) => {
@@ -186,18 +186,18 @@ const create = async () => {
     // if new user, create object storage
     app.get('/:user', (req, res) => {
         var user = req.params.user;
-        
+
         getUserFromBucket(bucketName, user).then((data) => {
             var services = Buffer.from(data.Body).toString();
-            res.status(200).send({"user": user, "services": services});
+            res.status(200).send({ "user": user, "services": services });
         }).catch((NoSuchKey) => {
             addUserToBucket(bucketName, user, '');
-            res.status(200).send({"user": user, "services": []});
+            res.status(200).send({ "user": user, "services": [] });
         }).catch((e) => {
             console.error(`ERROR: ${e.code} - ${e.message}\n`);
-            res.send({"error": "Error when accessing IBM Object Storage."});
+            res.send({ "error": "Error when accessing IBM Object Storage." });
         }).catch((e) => {
-            res.status(200).send({"error": "User not signed in."});
+            res.status(200).send({ "error": "User not signed in." });
         });
     });
 
@@ -205,14 +205,6 @@ const create = async () => {
     app.get('/subscribe/:user/:serviceName', (req, res) => {
         var user = req.params.user;
         var newService = req.params.serviceName;
-        switch (newService) {
-            case "marketIndex":
-                newService = "Market Index";
-                break;
-            case "topTenStocks":
-                newService = "Top Ten Stocks";
-                break;
-        }
 
         getUserFromBucket(bucketName, user).then((data) => {
             var serviceObject = Buffer.from(data.Body).toString();
@@ -221,11 +213,11 @@ const create = async () => {
 
             services.add(newService);
             updateUserInBucket(bucketName, user, [...services].join(', '));
-            res.send({"service": newService});
+            res.send({ "service": newService });
         })
             .catch((e) => {
                 console.error(`ERROR: ${e.code} - ${e.message}\n`);
-                res.send({"error": "Error when accessing IBM Object Storage."});
+                res.send({ "error": "Error when accessing IBM Object Storage." });
             });
     });
 
@@ -233,14 +225,6 @@ const create = async () => {
     app.get('/unsubscribe/:user/:serviceName', (req, res) => {
         var user = req.params.user;
         var newService = req.params.serviceName;
-        switch (newService) {
-            case "marketIndex":
-                newService = "Market Index";
-                break;
-            case "topTenStocks":
-                newService = "Top Ten Stocks";
-                break;
-        }
 
         getUserFromBucket(bucketName, user).then((data) => {
             var serviceObject = Buffer.from(data.Body).toString();
@@ -249,11 +233,11 @@ const create = async () => {
 
             services.delete(newService);
             updateUserInBucket(bucketName, user, [...services].join(', '));
-            res.send({"service": newService});
+            res.send({ "service": newService });
         })
             .catch((e) => {
                 console.error(`ERROR: ${e.code} - ${e.message}\n`);
-                res.send({"error": "Error when accessing IBM Object Storage."});
+                res.send({ "error": "Error when accessing IBM Object Storage." });
             });
     });
 

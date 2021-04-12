@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 var axios = require("axios").default;
 const dataGetter = require('./marketIndexGetter');
 
+// const gateway = 'http://4471-apigateway.azurewebsites.net';
+const gateway = 'http://localhost:4444';
+
 var serviceRegistry = [];
 
 // ignore request for FavIcon. so there is no error in browser
@@ -24,35 +27,34 @@ async function getPriceInfo(options) {
     var changePer = priceObject.regularMarketChangePercent.fmt;
     var volume = priceObject.regularMarketVolume.fmt;
     return { "symbol": symbol, "name": name, "price": price, "change": change, "changePer": changePer, "volume": volume };
-  }
+}
 
 async function getMarketIndex() {
     var indices = ["%5EGSPC", "%5EDJI", "%5EIXIC", "%5EGSPTSE"]; // 4 indices S&P 500, Dow Jones, NASDAQ, S&P/TSX. list expandable
     var results = [];
     for (let index in indices) {
-      dataGetter.options.url = indices[index];
-      const priceInfo = await getPriceInfo(dataGetter.options);
-      results.push(priceInfo);
+        dataGetter.options.url = indices[index];
+        const priceInfo = await getPriceInfo(dataGetter.options);
+        results.push(priceInfo);
     }
     return results;
 }
 
 // fn to create express server
 const create = async () => {
-    
+
     // register service
     (async () => {
         const results = await getMarketIndex();
         try {
             var config = {
                 method: 'post',
-                // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                baseURL: 'http://localhost:4444',
+                baseURL: gateway,
                 url: '/AddService',
                 data: {
-                serviceId: 1,
-                serviceName: 'Market Index',
-                serviceData: results
+                    serviceId: 1,
+                    serviceName: 'Market Index',
+                    serviceData: results
                 }
             };
             await axios.request(config);
@@ -63,7 +65,6 @@ const create = async () => {
 
     // server
     const app = express();
-    console.log("HELP");
     // configure nonFeature
     app.use(ignoreFavicon);
     app.use(bodyParser.json());
@@ -81,15 +82,14 @@ const create = async () => {
             const results = await getMarketIndex();
             try {
                 var config = {
-                method: 'post',
-                // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                baseURL: 'http://localhost:4444',
-                url: '/UpdateData',
-                data: {
-                    serviceId: 1,
-                    serviceName: 'Market Index',
-                    serviceData: results
-                }
+                    method: 'post',
+                    baseURL: gateway,
+                    url: '/UpdateData',
+                    data: {
+                        serviceId: 1,
+                        serviceName: 'Market Index',
+                        serviceData: results
+                    }
                 };
                 await axios.request(config);
             } catch (e) {
@@ -101,17 +101,16 @@ const create = async () => {
 
     // shutdown service
     app.get('/shutdown', async (req, res) => {
-            try {
-                var config = {
-                    method: 'delete',
-                    // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                    baseURL: 'http://localhost:4444',
-                    url: '/RemoveService/1'
-                  };
-                  const response = await axios.request(config);
-            } catch (e) {
-                console.log("Couldn't shutdown service.")
-            }
+        try {
+            var config = {
+                method: 'delete',
+                baseURL: gateway,
+                url: '/RemoveService/1'
+            };
+            const response = await axios.request(config);
+        } catch (e) {
+            console.log("Couldn't shutdown service.")
+        }
         res.status(200).send();
     });
 

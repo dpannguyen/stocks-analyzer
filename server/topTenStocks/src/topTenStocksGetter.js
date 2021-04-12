@@ -2,7 +2,7 @@ var options = {
   method: 'GET',
   url: 'https://yahoo-finance-low-latency.p.rapidapi.com/ws/screeners/v1/finance/screener/predefined/saved',
   params: {
-    scrIds: 'most_actives', 
+    scrIds: 'most_actives',
     count: '10'
   },
   headers: {
@@ -11,5 +11,4 @@ var options = {
   }
 };
 
-module.exports = {options};
-  
+module.exports = { options };

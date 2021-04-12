@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 var axios = require("axios").default;
 const dataGetter = require('./twitterSentimentsGetter');
 
+// const gateway = 'http://4471-apigateway.azurewebsites.net';
+const gateway = 'http://localhost:4444';
+
 var serviceRegistry = [];
 
 // ignore request for FavIcon. so there is no error in browser
@@ -16,20 +19,19 @@ const ignoreFavicon = (req, res, next) => {
 
 // fn to create express server
 const create = async () => {
-    
+
     // register service
     (async () => {
         const results = await axios.request(dataGetter.options);
         try {
             var config = {
                 method: 'post',
-                // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                baseURL: 'http://localhost:4444',
+                baseURL: gateway,
                 url: '/AddService',
                 data: {
-                serviceId: 3,
-                serviceName: 'Twitter Sentiments',
-                serviceData: results.data
+                    serviceId: 3,
+                    serviceName: 'Twitter Sentiments',
+                    serviceData: results.data
                 }
             };
             await axios.request(config);
@@ -58,15 +60,14 @@ const create = async () => {
             const results = await axios.request(dataGetter.options);
             try {
                 var config = {
-                method: 'post',
-                // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                baseURL: 'http://localhost:4444',
-                url: '/UpdateData',
-                data: {
-                    serviceId: 3,
-                    serviceName: 'Twitter Sentiments',
-                    serviceData: results.data
-                }
+                    method: 'post',
+                    baseURL: gateway,
+                    url: '/UpdateData',
+                    data: {
+                        serviceId: 3,
+                        serviceName: 'Twitter Sentiments',
+                        serviceData: results.data
+                    }
                 };
                 await axios.request(config);
             } catch (e) {
@@ -78,17 +79,16 @@ const create = async () => {
 
     // shutdown service
     app.get('/shutdown', async (req, res) => {
-            try {
-                var config = {
-                    method: 'delete',
-                    // baseURL: 'http://4471-apigateway.azurewebsites.net',
-                    baseURL: 'http://localhost:4444',
-                    url: '/RemoveService/3'
-                  };
-                  const response = await axios.request(config);
-            } catch (e) {
-                console.log("Couldn't shutdown service.")
-            }
+        try {
+            var config = {
+                method: 'delete',
+                baseURL: gateway,
+                url: '/RemoveService/3'
+            };
+            const response = await axios.request(config);
+        } catch (e) {
+            console.log("Couldn't shutdown service.")
+        }
         res.status(200).send();
     });
 

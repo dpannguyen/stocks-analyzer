@@ -31,3 +31,10 @@
     node /server/services/subscriber.js
     ```
     * Open *http://localhost:3000/* to verify
+* Run UI
+	```
+    cd frontend/
+	npm install
+	npm start
+    ```
+	http://localhost:3000/ should open automatically open in your browser

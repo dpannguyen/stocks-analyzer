@@ -13,7 +13,7 @@ In root, run
     cd server/apiGateway
     npm start
     ```
-    * Default port for API Gateway is 4444 on localhost
+    * Default port for API gateway is 4444 on localhost
 
 * Run each service
     ```
@@ -24,8 +24,12 @@ In root, run
         * marketIndex: 3010
         * topTenStocks: 3020
         * twitterSentiments: 3030
-    * Once a service is run, it will be automatically registered to the API Gateway
+    * Once a service is run, it will be automatically registered to the API gateway
     * Once stopped, it will be automatically unregistered
+    * To fetch new data for a service, run the appropriate endpoint for the service:
+        * /marketIndex
+        * /topTenStocks
+        * /twitterSentiments
 
 
 * Run UI
@@ -35,3 +39,10 @@ In root, run
     ```
     * Default port for UI is 3000 on localhost
     * http://localhost:3000/ should be automatically open in your browser
+
+
+
+## Note
+
+* The project was deployed, run, tested and presented on Microsoft Azure Cloud service. To do this, each service and API gateway have to be packaged in separate repositories and deployed individually. 
+* In order to save on usage costs, the cloud services were shut down and re-packaged for localhost testing.

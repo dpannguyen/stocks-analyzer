@@ -1,0 +1,8 @@
+{
+  "name": "stonks-analyzer",
+  "version": "1.0.0",
+  "description": "Stonks Analyzer",
+  "scripts": {
+    "postinstall": "(cd server/apiGateway && npm install); (cd server/marketIndex && npm install); (cd server/topTenStocks && npm install); (cd server/twitterSentiments && npm install); (cd frontend && npm install);"
+  }
+}

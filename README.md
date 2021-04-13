@@ -1,16 +1,8 @@
 ## Build project
 
-* Under */server*, run
+In root, run
     ```
-    npm install express body-parser
-    ```
-* Under */server/services*, run
-    ```
-    npm install express body-parser crypto express-openid-connect ibm-cos-sdk
-    ```
-* Under each service folder in */server/services/*, run
-    ```
-    npm install express body-parser
+    npm run postinstall
     ```
 
 
@@ -18,23 +10,28 @@
 
 * Run API Gateway
     ```
-    node /server/APIGateway.js
+    cd server/apiGateway
+    npm start
     ```
-    * Open *http://localhost:44444/* to verify
-* Run each service, e.g.
+    * Default port for API Gateway is 4444 on localhost
+
+* Run each service
     ```
-    node /server/services/marketIndex/marketIndex.js 8081
+    cd server/{service}
+    npm start
     ```
-    * Open *http://localhost:8081/* to verify
-* Run subscriber
-    ```
-    node /server/services/subscriber.js
-    ```
-    * Open *http://localhost:3000/* to verify
+    * Default ports for each service on localhost are: 
+        * marketIndex: 3010
+        * topTenStocks: 3020
+        * twitterSentiments: 3030
+    * Once a service is run, it will be automatically registered to the API Gateway
+    * Once stopped, it will be automatically unregistered
+
+
 * Run UI
-	```
-    cd frontend/
-	npm install
-	npm start
     ```
-	http://localhost:3000/ should open automatically open in your browser
+    cd frontend
+    npm start
+    ```
+    * Default port for UI is 3000 on localhost
+    * http://localhost:3000/ should be automatically open in your browser

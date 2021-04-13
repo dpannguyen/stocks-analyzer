@@ -1,3 +1,5 @@
+Note: We have shut down our cloud services to save on usage costs!
+
 ## Build project
 
 In root, run

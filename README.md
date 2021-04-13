@@ -1,3 +1,15 @@
+# Stonks Analyzer
+
+## About
+An application to provide users with subscribable services that will make navigating financial decisions easier by giving real-time data.
+
+The three services we offer are:
+1. Market Index List
+2. Top Ten Most Active Stocks of the Day
+3. Twitter Sentiments on Famous Stocks
+
+
+
 ## Build project
 
 In root, run

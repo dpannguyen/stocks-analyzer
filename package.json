@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "Stonks Analyzer",
   "scripts": {
-    "postinstall": "(cd server/apiGateway && npm install) && (cd server/marketIndex && npm install) && (cd server/topTenStocks && npm install) && (cd server/twitterSentiments && npm install) && (cd frontend && npm install)"
+    "postinstall": "(cd server && cd apiGateway && npm install && cd ..) && (cd marketIndex && npm install && cd ..) && (cd topTenStocks && npm install && cd ..) && (cd twitterSentiments && npm install && cd ..) && (cd .. && cd frontend && npm install  && cd ..)"
   }
 }

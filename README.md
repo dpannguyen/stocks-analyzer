@@ -1,7 +1,10 @@
 # Stonks Analyzer
 
 ## About
-An application to provide users with subscribable services that will make navigating financial decisions easier by giving real-time data.
+An application to provide users with subscribable services that make navigating financial decisions easier by giving real-time stocks data. 
+
+The application uses Node.js for server and React for UI implementation. The central architectural pattern implemented is Service-Oriented Architecture (SOA) with Publish-Subscribe model. Services are dynamically made available and taken off.
+
 
 The three services we offer are:
 1. Market Index List
@@ -56,6 +59,8 @@ npm run postinstall
   
 ## Screenshot
 ![UI screenshot](https://github.com/dpannguyen/stonks-analyzer/blob/master/frontend/public/ui.png)
+
+
 
 ## Note
 

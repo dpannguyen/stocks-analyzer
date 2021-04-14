@@ -53,6 +53,9 @@ npm run postinstall
     * http://localhost:3000/ should be automatically open in your browser
 
   
+  
+## Screenshot
+![UI screenshot](https://github.com/dpannguyen/stonks-analyzer/blob/master/frontend/public/ui.png)
 
 ## Note
 

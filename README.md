@@ -7,16 +7,16 @@ The three services we offer are:
 1. Market Index List
 2. Top Ten Most Active Stocks of the Day
 3. Twitter Sentiments on Famous Stocks
-
+  
 
 
 ## Build project
 
 In root, run
-    ```
-    npm run postinstall
-    ```
-
+```
+npm run postinstall
+```
+    
 
 ## Run project
 
@@ -52,7 +52,7 @@ In root, run
     * Default port for UI is 3000 on localhost
     * http://localhost:3000/ should be automatically open in your browser
 
-
+  
 
 ## Note
 
